@@ -1,3 +1,4 @@
+#include <cerrno>
 #include <stdexcept>
 #include <udp.hpp>
 #include <sys/socket.h>
@@ -11,9 +12,12 @@ int UDP::netsend(size_t targetID, char *buf, size_t len) {
   
   size_t idx = ref->second;
   sockaddr_in* addr = &hosts[idx];
-  ssize_t ret = sendto(sockfd, buf, len, 0, reinterpret_cast<const sockaddr*>(addr), sizeof(sockaddr_in));
+  ssize_t ret = sendto(sockfd, buf, len, MSG_DONTWAIT, reinterpret_cast<const sockaddr*>(addr), sizeof(sockaddr_in));
   if (ret < 0) {
-    throw std::runtime_error(std::string(strerror(errno)));
+    if (errno == EWOULDBLOCK) return -EWOULDBLOCK;
+    else if (errno == ENOBUFS) return -ENOBUFS;
+    else 
+      throw std::runtime_error(std::string(strerror(errno)));
   }
   return 0;
 }

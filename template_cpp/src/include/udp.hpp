@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <unordered_map>
 #include <vector>
+#include <fcntl.h>
 
 class UDP {
 private:

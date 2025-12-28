@@ -23,7 +23,8 @@ public:
   
   PerfConfig(string configPath): configPath(configPath) {
     ifstream cfg(configPath);
-    cfg >> packetCount >> receiverId;
+    cfg >> packetCount;
+    cfg >> receiverId;
   }
 };
 
@@ -48,7 +49,7 @@ struct PLMessageGroupHeader {
   size_t bufferSize;
 };
 
-const size_t PL_MESSAGE_CONTENT_MAX_SIZE = 128;
+const size_t PL_MESSAGE_CONTENT_MAX_SIZE = 1024;
 const size_t PL_MESSAGE_GROUP_MAX_LENGTH = 8;
 
 inline PLMessageGroupHeader* PLMsgGrpHdr(char *buf) {
@@ -72,9 +73,11 @@ void reset_data_packet(PLPacketHeader *pktHdr, PLMessageGroupHeader *grpHdr);
 void sender_retransmission(void);
 void sender_send_next(void);
 void sender_handle_acks(void);
-void onReceiveData(PLPacketHeader *pkt);
-void onReceiveAck(PLPacketHeader*);
+void on_receive_data(PLPacketHeader *pkt);
+void on_receive_ack(PLPacketHeader*);
 void sender_thread(void);
 void receiver_thread(void);
+
+void receiver_broadcast_next_mymessage();
 
 #endif

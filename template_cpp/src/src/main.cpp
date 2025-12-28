@@ -8,12 +8,14 @@
 #include <signal.h>
 #include <udp.hpp>
 #include <unordered_map>
+#include <broadcast.hpp>
 
 UDP *udp;
 Logger *logger;
 unsigned long myid;
 unsigned long target_send_cnt;
 unsigned long target_id;
+FIFOBroadcast *fifo;
 
 static void stop(int) {
   // reset signal handlers to default
@@ -97,10 +99,25 @@ int main(int argc, char **argv) {
 
   PerfConfig cfg(parser.configPath());
 
-  target_id = cfg.receiverId;
+  // target_id = cfg.receiverId;
   target_send_cnt = cfg.packetCount;
 
   prepare(parser);
+
+  vector<uint64_t> hosts1;
+  for (const auto& h : hosts) {
+    hosts1.push_back(h.id); 
+  }
+  fifo = new FIFOBroadcast(parser.id(), hosts1, logger);
+
+  std::cout << "I am " << myid << " send count = " << target_send_cnt << "\n\n";
+
+  auto t1 = std::thread(receiver_thread);
+  auto t2 = std::thread(sender_thread);
+  t1.join();
+  t2.join();
+  
+  /*
   if (parser.id() == cfg.receiverId) { 
     std::cout << "I am the receiver\n\n";
     target_send_cnt = 0;
@@ -115,6 +132,7 @@ int main(int argc, char **argv) {
     t1.join();
     t2.join();
   }
+  */
 
   // After a process finishes broadcasting,
   // it waits forever for the delivery of messages.

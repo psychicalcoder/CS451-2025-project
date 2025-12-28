@@ -5,9 +5,11 @@
 #include <fstream>
 #include <iostream>
 #include <cerrno>
+#include <mutex>
 
 class Logger {
 private:
+  std::mutex lock;
   std::ofstream file;
 
 public:
@@ -18,15 +20,18 @@ public:
     }
   }
   ~Logger() {
+    std::lock_guard<std::mutex> guard(lock);
     file.flush();
     file.close();
   }
 
   void logln(std::string msg) {
+    std::lock_guard<std::mutex> guard(lock);
     file << msg << "\n";
   }
 
   void log(std::string msg) {
+    std::lock_guard<std::mutex> guard(lock);
     file << msg;
   }
 };

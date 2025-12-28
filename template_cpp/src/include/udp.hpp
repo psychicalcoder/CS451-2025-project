@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 #include <fcntl.h>
+#include <chrono>
 
 class UDP {
 private:
@@ -23,7 +24,7 @@ public:
   UDP(uint64_t myid, std::vector<sockaddr_in> hosts,
       std::unordered_map<size_t, size_t> id2Addr)
       : hosts(hosts), id2Addr(id2Addr) {
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    sockfd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0);
     if (sockfd < 0) {
       throw std::runtime_error("socket(): " + std::string(strerror(errno)));
     }
@@ -36,7 +37,7 @@ public:
   }
 
   int netsend(size_t targetID, char *buf, size_t len);
-  size_t netrecv(char *buf, size_t maxlen);
+  size_t netrecv(char *buf, size_t maxlen, std::chrono::milliseconds timeout);
 
   ~UDP() { close(sockfd); }
 };
